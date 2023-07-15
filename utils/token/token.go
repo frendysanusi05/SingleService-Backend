@@ -4,14 +4,13 @@ import (
 	"fmt"
 	"os"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	jwt "github.com/dgrijalva/jwt-go"
 )
 
-func GenerateToken(user_id uint) (string, error) {
+func GenerateToken(username string, password string) (string, error) {
 	token_lifespan, err := strconv.Atoi(os.Getenv("TOKEN_HOUR_LIFESPAN"))
 
 	if err != nil {
@@ -19,68 +18,41 @@ func GenerateToken(user_id uint) (string, error) {
 	}
 
 	claims := jwt.MapClaims{}
-	claims["authorized"] = true
-	claims["user_id"] = user_id
+	claims["username"] = username
+	claims["password"] = password
 	claims["exp"] = time.Now().Add(time.Hour * time.Duration(token_lifespan)).Unix()
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
 	return token.SignedString([]byte(os.Getenv("API_SECRET")))
 }
 
-func TokenValid(c *gin.Context) error {
+func TokenValid(c *gin.Context) bool {
 	tokenString := ExtractToken(c)
-	_, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+	_, err := ParseToken(tokenString)
+
+	if err != nil {
+		fmt.Println("Error: ", err)
+		return false
+	}
+	return true
+}
+
+func ParseToken(tokenString string) (*jwt.Token, error) {
+	return jwt.Parse(tokenString, func (token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
 		}
 		return []byte(os.Getenv("API_SECRET")), nil
 	})
-	if err != nil {
-		return err
-	}
-	return nil
 }
 
 func ExtractToken(c *gin.Context) string {
-	token := c.Query("token")
-	if token != "" {
-		return token
-	}
-	bearerToken := c.Request.Header.Get("Authorization")
-	if len(strings.Split(bearerToken, " ")) == 2 {
-		return strings.Split(bearerToken, " ")[1]
-	}
-	return ""
+	// cookie, err := c.Request.Cookie("cookie")
+	// if err != nil {
+	// 	fmt.Println("error: ", err)
+	// 	return ""
+	// }
+
+	// return cookie.Value
+	return c.GetHeader("Authorization")
 }
-
-func ExtractTokenID(c *gin.Context) (uint, error) {
-	tokenString := ExtractToken(c)
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
-		}
-		return []byte(os.Getenv("API_SECRET")), nil
-	})
-	if err != nil {
-		return 0, err
-	}
-	claims, ok := token.Claims.(jwt.MapClaims)
-	if ok && token.Valid {
-		uid, err := strconv.ParseUint(fmt.Sprintf("%.0f", claims["user_id"]), 10, 32)
-		if err != nil {
-			return 0, err
-		}
-		return uint(uid), nil
-	}
-	return 0, nil
-}
-
-// func SetCookies() gin.HandlerFunc {
-// 	return func(c *gin.Context) {
-// 		cookie, err := c.Cookie("gin_cookie")
-
-// 		if err != nil {
-// 			c.SetCookie("gin_cookie", token, 3600, "/", "localhost", false, true)
-// 		}
-// 	}
-// }

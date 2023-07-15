@@ -12,6 +12,12 @@ type User struct {
 	Password string `gorm:"size:255;not null;" json:"password"`
 }
 
+var u User
+
+func GetUser() (u User) {
+	return u
+}
+
 func LoginCheck(username string, password string) (string,error) {	
 	var err error
 
@@ -28,7 +34,7 @@ func LoginCheck(username string, password string) (string,error) {
 		return "", err
 	}
 
-	token,err := token.GenerateToken(u.ID)
+	token,err := token.GenerateToken(username, password)
 
 	if err != nil {
 		return "", err
