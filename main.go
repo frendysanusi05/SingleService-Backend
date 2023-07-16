@@ -1,11 +1,11 @@
 package main
 
 import (
-  	"github.com/frendysanusi05/Seleksi-Asisten-Laboratorium-Programming-SingleService/models"
-    "github.com/frendysanusi05/Seleksi-Asisten-Laboratorium-Programming-SingleService/routes"
+  	"single-service/databases"
+    "single-service/routes"
 )
 
 func main() {
-	models.ConnectDatabase()
+	databases.ConnectDatabase()
     routes.Route()
 }

@@ -1,4 +1,4 @@
-module github.com/frendysanusi05/Seleksi-Asisten-Laboratorium-Programming-SingleService
+module single-service
 
 go 1.19
 

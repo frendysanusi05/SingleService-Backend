@@ -8,8 +8,11 @@ import (
 
   	"github.com/gin-gonic/gin"
 	jwt "github.com/dgrijalva/jwt-go"
-	"github.com/frendysanusi05/Seleksi-Asisten-Laboratorium-Programming-SingleService/models"
-	tokens "github.com/frendysanusi05/Seleksi-Asisten-Laboratorium-Programming-SingleService/utils/token"
+	"golang.org/x/crypto/bcrypt"
+
+	tokens "single-service/utils/token"
+	"single-service/models"
+	"single-service/databases"
 )
 
 type LoginInput struct {
@@ -30,7 +33,7 @@ func Login(c *gin.Context) {
 	u.Username = input.Username
 	u.Password = input.Password
 
-	token, err := models.LoginCheck(u.Username, u.Password)
+	token, err := LoginCheck(u.Username, u.Password)
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "username or password is incorrect."})
@@ -69,10 +72,7 @@ func Self(c *gin.Context) {
 	}
 
 	claims, ok := token.Claims.(jwt.MapClaims)
-	fmt.Println("claims: ", claims)
 	if !ok || !tokens.TokenValid(c) {
-		fmt.Println("ok: ", ok)
-		fmt.Println("tokenValid: ", tokens.TokenValid(c))
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 		return
 	}
@@ -107,4 +107,34 @@ func Self(c *gin.Context) {
 			},
 		},
 	})
+}
+
+/**** ADDITIONAL FUNCTIONS *****/
+func LoginCheck(username string, password string) (string,error) {	
+	var err error
+
+	u := models.User{}
+	err = databases.GetDB().Model(models.User{}).Where("username = ?", username).Take(&u).Error
+
+	if err != nil {
+		return "", err
+	}
+
+	err = VerifyPassword(password, u.Password)
+
+	if err != nil && err == bcrypt.ErrMismatchedHashAndPassword {
+		return "", err
+	}
+
+	token,err := tokens.GenerateToken(username, password)
+
+	if err != nil {
+		return "", err
+	}
+
+	return token, nil
+}
+
+func VerifyPassword(password,hashedPassword string) error {
+	return bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
 }

@@ -47,12 +47,10 @@ func ParseToken(tokenString string) (*jwt.Token, error) {
 }
 
 func ExtractToken(c *gin.Context) string {
-	// cookie, err := c.Request.Cookie("cookie")
-	// if err != nil {
-	// 	fmt.Println("error: ", err)
-	// 	return ""
-	// }
+	cookie, err := c.Request.Cookie("cookie")
+	if err != nil {
+		return c.GetHeader("Authorization")
+	}
 
-	// return cookie.Value
-	return c.GetHeader("Authorization")
+	return cookie.Value
 }

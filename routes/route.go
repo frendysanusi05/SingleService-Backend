@@ -2,8 +2,8 @@ package routes
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/frendysanusi05/Seleksi-Asisten-Laboratorium-Programming-SingleService/controllers"
-	"github.com/frendysanusi05/Seleksi-Asisten-Laboratorium-Programming-SingleService/middlewares"
+	"single-service/controllers"
+	"single-service/middlewares"
 )
 
 func Route() {

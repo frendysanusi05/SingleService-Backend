@@ -1,4 +1,4 @@
-package models
+package databases
 
 import (
 	"fmt"
@@ -8,9 +8,31 @@ import (
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 	"github.com/joho/godotenv"
+
+	"single-service/models"
 )
 
 var DB *gorm.DB
+
+func GetDB() (DB *gorm.DB) {
+	return DB
+}
+
+/**** MIGRATIONS ****/
+func Migrate() {
+	// for _, model := range models.GetModel() {
+	// 	err := DB.Debug().AutoMigrate(model.Model)
+
+	// 	if err != nil {
+	// 		fmt.Println("Migration failed")
+	// 		log.Fatalln("error: ", err)
+	// 	}
+	// }
+
+	DB.AutoMigrate(&models.User{}, &models.Barang{}, &models.Perusahaan{})
+
+	fmt.Println("Database migrated successfully")
+}
 
 func ConnectDatabase() {
 	err := godotenv.Load(".env")
@@ -37,5 +59,5 @@ func ConnectDatabase() {
 		fmt.Println("Connected to the database ", Dbdriver)
 	}
 
-	DB.AutoMigrate(&User{})
+	Migrate()
 }
