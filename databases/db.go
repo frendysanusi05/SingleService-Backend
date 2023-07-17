@@ -14,10 +14,6 @@ import (
 
 var DB *gorm.DB
 
-func GetDB() (DB *gorm.DB) {
-	return DB
-}
-
 /**** MIGRATIONS ****/
 func Migrate() {
 	// for _, model := range models.GetModel() {
@@ -31,10 +27,28 @@ func Migrate() {
 
 	DB.AutoMigrate(&models.User{}, &models.Barang{}, &models.Perusahaan{})
 
+	// Add foreign key
+	DB.Model(&models.Barang{}).AddForeignKey("id_perusahaan", "perusahaans(id)", "CASCADE", "CASCADE")
+
 	fmt.Println("Database migrated successfully")
 }
 
-func ConnectDatabase() {
+/**** SEEDER ****/
+func Seed() {
+	for _, seed := range GetUserSeeder() {
+		DB.Create(&seed)
+	}
+	for _, seed := range GetPerusahaanSeeder() {
+		DB.Create(&seed)
+	}
+	for _, seed := range GetBarangSeeder() {
+		DB.Create(&seed)
+	}
+}
+
+/***** CONNECT & INITIALIZE DATABASE *****/
+/* make it singleton */
+func ConnectDatabase() (*gorm.DB, error) {
 	err := godotenv.Load(".env")
 
 	if err != nil {
@@ -60,4 +74,7 @@ func ConnectDatabase() {
 	}
 
 	Migrate()
+	Seed()
+
+	return DB, nil
 }

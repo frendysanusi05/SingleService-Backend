@@ -11,6 +11,7 @@ func Route() {
 	r.Use(middlewares.CORSMiddleware())
 	r.POST("/login", controllers.Login)
 	r.GET("/self", controllers.Self)
+	// r.GET("/perusahaan", controllers.GetPerusahaan)
 
 	r.Run(":8080")
 }

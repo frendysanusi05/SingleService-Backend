@@ -1,43 +1,45 @@
 package models
 
 import (
-	"github.com/jinzhu/gorm"
+	"time"
 )
 
 /********* USER ***********/
 type User struct {
-	gorm.Model
-	Username string `gorm:"size:255;not null;unique" json:"username"`
-	Name 	 string `gorm:"size:255;not null;" json:"name"`
-	Password string `gorm:"size:255;not null;" json:"password"`
+	Username	string `gorm:"size:255;not null;unique" json:"username"`
+	Name 	 	string `gorm:"size:255;not null;" json:"name"`
+	Password 	string `gorm:"size:255;not null;" json:"password"`
+	CreatedAt	time.Time
+	UpdatedAt	time.Time
 }
 
 /********* BARANG ***********/
 type Barang struct {
-	gorm.Model
+	ID		 		string		`gorm:"size:255;not null;unique;primary_key" json:"id"`
 	Nama			string		`gorm:"size:255;not null" json:"nama"`
-	Harga			int			`gorm:"size:255;not null" json:"harga"`
-	Stok			int			`gorm:"size:255;not null" json:"stok"`
+	Harga			int			`gorm:"not null" json:"harga"`
+	Stok			int			`gorm:"not null" json:"stok"`
 	Kode			string		`gorm:"size:255;not null" json:"kode"`
-	IDPerusahaan	Perusahaan	`gorm:"references:id;constraint:onUpdate:CASCADE,onDelete:CASCADE" json:"perusahaan_id"`
+	IDPerusahaan	string		`gorm:"not null" json:"id_perusahaan"`
+	CreatedAt		time.Time
+	UpdatedAt		time.Time
 }
 
 /********* PERUSAHAAN ***********/
 type Perusahaan struct {
-	gorm.Model
-	Nama	string	`gorm:"size:255;not null" json:"nama"`
-	Alamat	string	`gorm:"size:255;not null" json:"alamat"`
-	NoTelp	string	`gorm:"size:255;not null" json:"no_telp"`
-	Kode	string	`gorm:"size:255;not null" json:"kode"`
+	ID			string		`gorm:"size:255;not null;unique;primary_key" json:"id"`
+	Nama		string		`gorm:"size:255;not null" json:"nama"`
+	Alamat		string		`gorm:"size:255;not null" json:"alamat"`
+	NoTelp		string		`gorm:"size:255;not null" json:"no_telp"`
+	Kode		string		`gorm:"size:255;not null" json:"kode"`
+	CreatedAt	time.Time
+	UpdatedAt	time.Time
 }
 
 /********* MODEL ***********/
 type Model struct {
 	Model interface{}
 }
-
-/********* VARIABLES ***********/
-var u User
 
 /********* GETTER ***********/
 // func GetModel() []Model {
@@ -47,7 +49,3 @@ var u User
 // 		{Model: Perusahaan{}},
 // 	}
 // }
-
-func GetUser() (u User) {
-	return u
-}

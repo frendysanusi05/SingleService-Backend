@@ -7,8 +7,8 @@ import (
 	"io/ioutil"
 
   	"github.com/gin-gonic/gin"
-	jwt "github.com/dgrijalva/jwt-go"
 	"golang.org/x/crypto/bcrypt"
+	jwt "github.com/dgrijalva/jwt-go"
 
 	tokens "single-service/utils/token"
 	"single-service/models"
@@ -22,21 +22,26 @@ type LoginInput struct {
 
 func Login(c *gin.Context) {
 	var input LoginInput
+	DB, _ := databases.ConnectDatabase()
 
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	u := models.GetUser()
+	u := models.User{}
 
 	u.Username = input.Username
 	u.Password = input.Password
 
 	token, err := LoginCheck(u.Username, u.Password)
-
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "username or password is incorrect."})
+		return
+	}
+
+	err = DB.Select("name").Where("username = ?", u.Username).First(&u).Error
+	if err != nil {
 		return
 	}
 
@@ -46,7 +51,6 @@ func Login(c *gin.Context) {
 	if err != nil {
 		cookie = token
 		c.SetCookie("cookie", cookie, 3600, "/", "localhost", false, true)
-		// c.Writer.Header().Set("Authorization", cookie)
 	}
 
 	c.JSON(http.StatusOK, gin.H{
@@ -55,7 +59,7 @@ func Login(c *gin.Context) {
 		"data": gin.H{
 			"user": gin.H{
 				"username": u.Username,
-				// "name": u.Name,
+				"name": u.Name,
 			},
 			"token": token,
 		},
@@ -63,6 +67,8 @@ func Login(c *gin.Context) {
 }
 
 func Self(c *gin.Context) {
+	DB, _ := databases.ConnectDatabase()
+
 	tokenString := tokens.ExtractToken(c)
 	token, err := tokens.ParseToken(tokenString)
 
@@ -81,6 +87,13 @@ func Self(c *gin.Context) {
 	req := c.Request.WithContext(ctx)
 
 	userInfo := req.Context().Value("claims").(jwt.MapClaims)
+
+	// get name
+	u := models.User{}
+	err = DB.Select("name").Where("username = ?", userInfo["username"]).First(&u).Error
+	if err != nil {
+		return
+	}
 
 	resp, err := http.Get("https://ohl-fe.vercel.app/self")
 	if err != nil {
@@ -103,7 +116,7 @@ func Self(c *gin.Context) {
 		"data": gin.H{
 			"user": gin.H{
 				"username": userInfo["username"],
-				// "name": userInfo["name"],
+				"name": u.Name,
 			},
 		},
 	})
@@ -114,7 +127,8 @@ func LoginCheck(username string, password string) (string,error) {
 	var err error
 
 	u := models.User{}
-	err = databases.GetDB().Model(models.User{}).Where("username = ?", username).Take(&u).Error
+	DB, _ := databases.ConnectDatabase()
+	err = DB.Model(models.User{}).Where("username = ?", username).Take(&u).Error
 
 	if err != nil {
 		return "", err
@@ -123,6 +137,7 @@ func LoginCheck(username string, password string) (string,error) {
 	err = VerifyPassword(password, u.Password)
 
 	if err != nil && err == bcrypt.ErrMismatchedHashAndPassword {
+		fmt.Println("Password salah")
 		return "", err
 	}
 
@@ -138,3 +153,4 @@ func LoginCheck(username string, password string) (string,error) {
 func VerifyPassword(password,hashedPassword string) error {
 	return bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
 }
+
