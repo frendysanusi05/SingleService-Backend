@@ -19,7 +19,7 @@ type Barang struct {
 	Nama			string		`gorm:"size:255;not null" json:"nama"`
 	Harga			int			`gorm:"not null" json:"harga"`
 	Stok			int			`gorm:"not null" json:"stok"`
-	Kode			string		`gorm:"size:255;not null" json:"kode"`
+	Kode			string		`gorm:"size:255;not null;unique" json:"kode"`
 	PerusahaanID	string		`gorm:"not null" json:"perusahaan_id"`
 	CreatedAt		time.Time
 	UpdatedAt		time.Time

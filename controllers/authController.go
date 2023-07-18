@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"fmt"
 	"context"
 	"net/http"
 	"io/ioutil"
@@ -11,6 +10,7 @@ import (
 	jwt "github.com/dgrijalva/jwt-go"
 
 	tokens "single-service/utils/token"
+	"single-service/utils"
 	"single-service/models"
 	"single-service/databases"
 )
@@ -25,7 +25,7 @@ func Login(c *gin.Context) {
 	DB, _ := databases.ConnectDatabase()
 
 	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		utils.MessageBadRequest(c, "Username or password must have a value")
 		return
 	}
 
@@ -34,14 +34,15 @@ func Login(c *gin.Context) {
 	u.Username = input.Username
 	u.Password = input.Password
 
-	token, err := LoginCheck(u.Username, u.Password)
+	token, err := loginCheck(u.Username, u.Password)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "username or password is incorrect."})
+		utils.MessageBadRequest(c, "Username or password is incorrect")
 		return
 	}
 
 	err = DB.Select("name").Where("username = ?", u.Username).First(&u).Error
 	if err != nil {
+		utils.MessageBadRequest(c, "An error occured")
 		return
 	}
 
@@ -53,7 +54,7 @@ func Login(c *gin.Context) {
 		c.SetCookie("cookie", cookie, 3600, "/", "localhost", false, true)
 	}
 
-	c.JSON(http.StatusOK, gin.H{
+	c.IndentedJSON(http.StatusOK, gin.H{
 		"status": "success",
 		"message": "Login success",
 		"data": gin.H{
@@ -73,13 +74,13 @@ func Self(c *gin.Context) {
 	token, err := tokens.ParseToken(tokenString)
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Parsing token error"})
+		utils.MessageBadRequest(c, "An error occured")
 		return
 	}
 
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok || !tokens.TokenValid(c) {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		utils.MessageUnauthorized(c, "Unauthorized")
 		return
 	}
 
@@ -92,38 +93,35 @@ func Self(c *gin.Context) {
 	u := models.User{}
 	err = DB.Select("name").Where("username = ?", userInfo["username"]).First(&u).Error
 	if err != nil {
+		utils.MessageBadRequest(c, "An error occured")
 		return
 	}
 
 	resp, err := http.Get("https://ohl-fe.vercel.app/self")
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Request GET failed"})
+		utils.MessageInternalError(c, "An error occured")
 		return
 	}
 	defer resp.Body.Close()
 
-	body, err := ioutil.ReadAll(resp.Body)
+	_, err = ioutil.ReadAll(resp.Body)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Request body failed"})
+		utils.MessageInternalError(c, "An error occured")
 		return
 	}
 
-	fmt.Println("Body: ", string(body))
-
-	c.JSON(http.StatusOK, gin.H{
+	c.IndentedJSON(http.StatusOK, gin.H{
 		"status": "success",
 		"message": "Read self success",
 		"data": gin.H{
-			"user": gin.H{
-				"username": userInfo["username"],
-				"name": u.Name,
-			},
+			"username": userInfo["username"],
+			"name": u.Name,
 		},
 	})
 }
 
 /**** ADDITIONAL FUNCTIONS *****/
-func LoginCheck(username string, password string) (string,error) {	
+func loginCheck(username string, password string) (string,error) {	
 	var err error
 
 	u := models.User{}
@@ -134,10 +132,9 @@ func LoginCheck(username string, password string) (string,error) {
 		return "", err
 	}
 
-	err = VerifyPassword(password, u.Password)
+	err = verifyPassword(password, u.Password)
 
 	if err != nil && err == bcrypt.ErrMismatchedHashAndPassword {
-		fmt.Println("Password salah")
 		return "", err
 	}
 
@@ -150,7 +147,7 @@ func LoginCheck(username string, password string) (string,error) {
 	return token, nil
 }
 
-func VerifyPassword(password,hashedPassword string) error {
+func verifyPassword(password,hashedPassword string) error {
 	return bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
 }
 

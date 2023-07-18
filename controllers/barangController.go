@@ -8,6 +8,7 @@ import (
 
 	"single-service/models"
 	"single-service/databases"
+	"single-service/utils"
 )
 
 func GetBarang(c *gin.Context) {
@@ -21,7 +22,7 @@ func GetBarang(c *gin.Context) {
 	}
 
 	if err := DB.Find(&barang).Error; err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err})
+		utils.MessageBadRequest(c, "An error occured")
 		return
 	}
 
@@ -37,9 +38,9 @@ func GetBarang(c *gin.Context) {
 		})
 	}
 
-	c.JSON(http.StatusOK, gin.H{
+	c.IndentedJSON(http.StatusOK, gin.H{
 		"status": "success",
-		"message": "GET Barang success",
+		"message": "GET barang success",
 		"data": barangData,
 	})
 }
@@ -50,13 +51,13 @@ func GetBarangByID(c *gin.Context) {
 	DB, _ := databases.ConnectDatabase()
 
 	if err := DB.Where("id = ?", id).First(&barang).Error; err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		utils.MessageBadRequest(c, "An error occured")
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
+	c.IndentedJSON(http.StatusOK, gin.H{
 		"status": "success",
-		"message": "GET Barang success",
+		"message": "GET barang success",
 		"data": gin.H{
 			"id": barang.ID,
 			"nama": barang.Nama,
@@ -73,9 +74,11 @@ func CreateBarang(c *gin.Context) {
 	DB, _ := databases.ConnectDatabase()
 
 	if err := c.ShouldBindJSON(&barang); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		utils.MessageBadRequest(c, "Each inputs must have a value")
 		return
 	}
+
+	validateBarang(c, barang)
 
 	if barang.ID == "" {
 		var lastBarang models.Barang
@@ -90,13 +93,13 @@ func CreateBarang(c *gin.Context) {
 	}
 
 	if err := DB.Create(&barang).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create barang"})
+		utils.MessageInternalError(c, "An error occured")
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
+	c.IndentedJSON(http.StatusOK, gin.H{
 		"status": "success",
-		"message": "POST Barang success",
+		"message": "POST barang success",
 		"data": gin.H{
 			"id": barang.ID,
 			"nama": barang.Nama,
@@ -106,4 +109,80 @@ func CreateBarang(c *gin.Context) {
 			"perusahaan_id": barang.PerusahaanID,
 		},
 	})
+}
+
+func UpdateBarang(c *gin.Context) {
+	id := c.Params.ByName("id")
+	var barang models.Barang
+	DB, _ := databases.ConnectDatabase()
+
+	if err := DB.Where("id = ?", id).First(&barang).Error; err != nil {
+		utils.MessageBadRequest(c, "An error occured")
+		return
+	}
+	
+	if err := c.ShouldBindJSON(&barang); err != nil {
+		utils.MessageBadRequest(c, "Each inputs must have a value")
+		return
+	}
+
+	validateBarang(c, barang)
+
+	DB.Save(&barang)
+	c.IndentedJSON(http.StatusOK, gin.H{
+		"status": "success",
+		"message": "Update barang success",
+		"data": gin.H{
+			"id": barang.ID,
+			"nama": barang.Nama,
+			"harga": barang.Harga,
+			"stok": barang.Stok,
+			"kode": barang.Kode,
+			"perusahaan_id": barang.PerusahaanID,
+		},
+	})
+}
+
+/******** ADDITIONAL FUNCTION *********/
+func validateBarang(c *gin.Context, barang models.Barang) {
+	if !validateHarga(barang) {
+		utils.MessageBadRequest(c, "Harga must greater than 0")
+		return
+	}
+
+	if !validateStok(barang) {
+		utils.MessageBadRequest(c, "Stok cannot be negative")
+		return
+	}
+
+	if !validateKodeBarang(barang) {
+		utils.MessageBadRequest(c, "Kode barang must have a unique value")
+		return
+	}
+}
+
+func validateHarga(b models.Barang) bool {
+	if b.Harga > 0 {
+		return true
+	}
+	return false
+}
+
+func validateStok(b models.Barang) bool {
+	if b.Stok >= 0 {
+		return true
+	}
+	return false
+}
+
+func validateKodeBarang(b models.Barang) bool {
+	DB, _ := databases.ConnectDatabase()
+	var barang models.Barang
+	if err := DB.Where("kode = ?", b.Kode).First(&barang).Error; err != nil {
+		return false
+	}
+	if barang.Kode == b.Kode && barang.ID == b.ID {
+		return false
+	}
+	return true
 }
