@@ -17,12 +17,14 @@ func Route() {
 	r.POST("/perusahaan", controllers.CreatePerusahaan)
 	r.GET("/perusahaan/:id", controllers.GetPerusahaanByID)
 	r.PUT("/perusahaan/:id", controllers.UpdatePerusahaan)
+	r.DELETE("/perusahaan/:id", controllers.DeletePerusahaan)
 
 	/******* BARANG ********/
 	r.GET("/barang", controllers.GetBarang)
 	r.POST("/barang", controllers.CreateBarang)
 	r.GET("/barang/:id", controllers.GetBarangByID)
 	r.PUT("/barang/:id", controllers.UpdateBarang)
+	r.DELETE("/barang/:id", controllers.DeleteBarang)
 
 	r.Run(":8080")
 }

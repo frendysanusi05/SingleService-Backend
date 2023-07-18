@@ -13,6 +13,13 @@ import (
 	"single-service/utils"
 )
 
+type PerusahaanInput struct {
+	Nama 	string `json:"nama" binding:"required"`
+	Alamat 	string `json:"alamat" binding:"required"`
+	NoTelp 	string `json:"no_telp" binding:"required"`
+	Kode 	string `json:"kode" binding:"required"`
+}
+
 func GetPerusahaan(c *gin.Context) {
 	query := c.Query("q")
 
@@ -145,6 +152,36 @@ func UpdatePerusahaan(c *gin.Context) {
 			"kode": perusahaan.Kode,
 		},
 	})
+}
+
+func DeletePerusahaan(c *gin.Context) {
+	id := c.Params.ByName("id")
+	var perusahaan models.Perusahaan
+	DB, _ := databases.ConnectDatabase()
+
+	if err := DB.Where("id = ?", id).First(&perusahaan).Error; err != nil {
+		utils.MessageInternalError(c, "An error occured")
+		return
+	}
+
+	deletedPerusahaan := perusahaan
+
+	if err := DB.Delete(&perusahaan).Error; err != nil {
+		utils.MessageInternalError(c, "An error occured")
+		return
+	}
+
+	c.IndentedJSON(http.StatusOK, gin.H{
+		"status": "success",
+		"message": "Delete barang success",
+		"data": gin.H{
+			"id": deletedPerusahaan.ID,
+			"nama": deletedPerusahaan.Nama,
+			"alamat": deletedPerusahaan.Alamat,
+			"no_telp": deletedPerusahaan.NoTelp,
+			"kode": deletedPerusahaan.Kode,
+		},
+	})	
 }
 
 /********* ADDITIONAL FUNCTION *********/

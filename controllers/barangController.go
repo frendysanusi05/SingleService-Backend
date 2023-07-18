@@ -143,6 +143,37 @@ func UpdateBarang(c *gin.Context) {
 	})
 }
 
+func DeleteBarang(c *gin.Context) {
+	id := c.Params.ByName("id")
+	var barang models.Barang
+	DB, _ := databases.ConnectDatabase()
+
+	if err := DB.Where("id = ?", id).First(&barang).Error; err != nil {
+		utils.MessageInternalError(c, "An error occured")
+		return
+	}
+
+	deletedBarang := barang
+
+	if err := DB.Delete(&barang).Error; err != nil {
+		utils.MessageInternalError(c, "An error occured")
+		return
+	}
+
+	c.IndentedJSON(http.StatusOK, gin.H{
+		"status": "success",
+		"message": "Delete barang success",
+		"data": gin.H{
+			"id": deletedBarang.ID,
+			"nama": deletedBarang.Nama,
+			"harga": deletedBarang.Harga,
+			"stok": deletedBarang.Stok,
+			"kode": deletedBarang.Kode,
+			"perusahaan_id": deletedBarang.PerusahaanID,
+		},
+	})	
+}
+
 /******** ADDITIONAL FUNCTION *********/
 func validateBarang(c *gin.Context, barang models.Barang) {
 	if !validateHarga(barang) {

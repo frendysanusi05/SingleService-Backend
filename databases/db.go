@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"sync"
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
@@ -13,6 +14,7 @@ import (
 )
 
 var DB *gorm.DB
+var Once sync.Once // call the functions once
 
 /**** MIGRATIONS ****/
 func Migrate() {
@@ -73,8 +75,10 @@ func ConnectDatabase() (*gorm.DB, error) {
 		fmt.Println("Connected to the database ", Dbdriver)
 	}
 
-	Migrate()
-	Seed()
+	Once.Do(func() {
+		Migrate()
+		Seed()
+	})
 
 	return DB, nil
 }

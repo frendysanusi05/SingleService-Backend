@@ -16,11 +16,11 @@ type User struct {
 /********* BARANG ***********/
 type Barang struct {
 	ID		 		string		`gorm:"size:255;not null;unique;primary_key" json:"id"`
-	Nama			string		`gorm:"size:255;not null" json:"nama"`
-	Harga			int			`gorm:"not null" json:"harga"`
-	Stok			int			`gorm:"not null" json:"stok"`
-	Kode			string		`gorm:"size:255;not null;unique" json:"kode"`
-	PerusahaanID	string		`gorm:"not null" json:"perusahaan_id"`
+	Nama			string		`gorm:"size:255;not null" json:"nama" binding:"required"`
+	Harga			int			`gorm:"not null" json:"harga" binding:"required"`
+	Stok			int			`gorm:"not null" json:"stok" binding:"required"`
+	Kode			string		`gorm:"size:255;not null;unique" json:"kode" binding:"required"`
+	PerusahaanID	string		`gorm:"not null" json:"perusahaan_id" binding:"required"`
 	CreatedAt		time.Time
 	UpdatedAt		time.Time
 }
@@ -28,10 +28,10 @@ type Barang struct {
 /********* PERUSAHAAN ***********/
 type Perusahaan struct {
 	ID			string		`gorm:"size:255;not null;unique;primary_key" json:"id"`
-	Nama		string		`gorm:"size:255;not null" json:"nama"`
-	Alamat		string		`gorm:"size:255;not null" json:"alamat"`
-	NoTelp		string		`gorm:"size:255;not null" json:"no_telp"`
-	Kode		string		`gorm:"size:255;not null" json:"kode"`
+	Nama		string		`gorm:"size:255;not null" json:"nama" binding:"required"`
+	Alamat		string		`gorm:"size:255;not null" json:"alamat" binding:"required"`
+	NoTelp		string		`gorm:"size:255;not null" json:"no_telp" binding:"required"`
+	Kode		string		`gorm:"size:255;not null" json:"kode" binding:"required"`
 	CreatedAt	time.Time
 	UpdatedAt	time.Time
 }
