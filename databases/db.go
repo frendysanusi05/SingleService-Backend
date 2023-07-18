@@ -28,7 +28,7 @@ func Migrate() {
 	DB.AutoMigrate(&models.User{}, &models.Barang{}, &models.Perusahaan{})
 
 	// Add foreign key
-	DB.Model(&models.Barang{}).AddForeignKey("id_perusahaan", "perusahaans(id)", "CASCADE", "CASCADE")
+	DB.Model(&models.Barang{}).AddForeignKey("perusahaan_id", "perusahaans(id)", "CASCADE", "CASCADE")
 
 	fmt.Println("Database migrated successfully")
 }

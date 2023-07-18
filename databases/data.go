@@ -21,7 +21,7 @@ var barangSeeder = []models.Barang {
 		Harga: 10000,
 		Stok: 5,
 		Kode: "BARANG1",
-		IDPerusahaan: "1",
+		PerusahaanID: "1",
 	},
 	models.Barang {
 		ID: "2",
@@ -29,7 +29,7 @@ var barangSeeder = []models.Barang {
 		Harga: 15000,
 		Stok: 1,
 		Kode: "BARANG2",
-		IDPerusahaan: "2",
+		PerusahaanID: "2",
 	},
 	models.Barang {
 		ID: "3",
@@ -37,7 +37,7 @@ var barangSeeder = []models.Barang {
 		Harga: 20000,
 		Stok: 6,
 		Kode: "BARANG3",
-		IDPerusahaan: "2",
+		PerusahaanID: "2",
 	},
 	models.Barang {
 		ID: "4",
@@ -45,7 +45,7 @@ var barangSeeder = []models.Barang {
 		Harga: 25000,
 		Stok: 10,
 		Kode: "BARANG4",
-		IDPerusahaan: "1",
+		PerusahaanID: "1",
 	},
 	models.Barang {
 		ID: "5",
@@ -53,7 +53,7 @@ var barangSeeder = []models.Barang {
 		Harga: 30000,
 		Stok: 3,
 		Kode: "BARANG5",
-		IDPerusahaan: "1",
+		PerusahaanID: "1",
 	},
 }
 
