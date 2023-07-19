@@ -12,19 +12,24 @@ func Route() {
 	r.POST("/login", controllers.Login)
 	r.GET("/self", controllers.Self)
 
+	admin := r.Group("")
+	admin.Use(middlewares.CheckAdmin())
+	{
+		/******* PERUSAHAAN ********/
+		admin.POST("/perusahaan", controllers.CreatePerusahaan)
+		admin.PUT("/perusahaan/:id", controllers.UpdatePerusahaan)
+		admin.DELETE("/perusahaan/:id", controllers.DeletePerusahaan)
+		/******* BARANG ********/
+		admin.POST("/barang", controllers.CreateBarang)
+		admin.PUT("/barang/:id", controllers.UpdateBarang)
+		admin.DELETE("/barang/:id", controllers.DeleteBarang)
+	}
 	/******* PERUSAHAAN ********/
 	r.GET("/perusahaan", controllers.GetPerusahaan)
-	r.POST("/perusahaan", controllers.CreatePerusahaan)
 	r.GET("/perusahaan/:id", controllers.GetPerusahaanByID)
-	r.PUT("/perusahaan/:id", controllers.UpdatePerusahaan)
-	r.DELETE("/perusahaan/:id", controllers.DeletePerusahaan)
-
 	/******* BARANG ********/
 	r.GET("/barang", controllers.GetBarang)
-	r.POST("/barang", controllers.CreateBarang)
 	r.GET("/barang/:id", controllers.GetBarangByID)
-	r.PUT("/barang/:id", controllers.UpdateBarang)
-	r.DELETE("/barang/:id", controllers.DeleteBarang)
 
 	r.Run(":8080")
 }

@@ -20,6 +20,7 @@ func GenerateToken(username string, password string) (string, error) {
 	claims := jwt.MapClaims{}
 	claims["username"] = username
 	claims["password"] = password
+	claims["role"] = "admin" // asumsi yang login di single service sudah pasti admin
 	claims["exp"] = time.Now().Add(time.Hour * time.Duration(token_lifespan)).Unix()
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
