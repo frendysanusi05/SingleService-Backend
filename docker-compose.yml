@@ -1,36 +1,31 @@
 version: '3'
 services:
     api:
+        container_name: single_service_api
         build: .
-        restart: on-failure
+        restart: always
         depends_on: 
-            - db
-        links:
-            - db
-        env_file: .env
-        # environment: 
-        #     - DB_HOST=${DB_HOST}
-        #     - DB_PORT=3306
-        #     - DB_NAME=${DB_NAME}
-        #     - DB_USER=root
-        #     - DB_PASS=${DB_PASSWORD}
+            db:
+                condition: service_healthy
         ports:
             - 8080:8080
 
     db:
         container_name: single_service_db
-        image: 'mysql'
+        image: mysql:latest
         environment: 
-            - MYSQL_DATABASE=${DB_NAME}
-            - MYSQL_ROOT_PASSWORD=${DB_PASSWORD}
-            # - MYSQL_USER=mysql
-            # - MYSQL_PASSWORD=@root
-            - DATABASE_HOST=db
-            - LC_ALL=C.UTF-8
-            - LANG=C.UTF-8
+            MYSQL_DATABASE: ${DB_NAME}
+            # MYSQL_USER: "${DB_USER}"
+            MYSQL_PASSWORD: ${DB_PASSWORD}
+            MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
         ports:
             - "3307:3306"
         volumes:
-            - ./data:/lib/mysql
-            - ./sql:/docker-entrypoint-initdb.d
+            - ./data:/var/lib/mysql
         restart: always
+        healthcheck:
+            test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+            interval: 30s
+            timeout: 30s
+            retries: 5
+            start_period: 30s
