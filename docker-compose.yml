@@ -9,17 +9,17 @@ services:
                 condition: service_healthy
         ports:
             - 8080:8080
+        networks:
+            - monolith
 
     db:
         container_name: single_service_db
         image: mysql:latest
         environment: 
             MYSQL_DATABASE: ${DB_NAME}
-            # MYSQL_USER: "${DB_USER}"
-            MYSQL_PASSWORD: ${DB_PASSWORD}
             MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
         ports:
-            - "3307:3306"
+            - "3308:3306"
         volumes:
             - ./data:/var/lib/mysql
         restart: always
@@ -29,3 +29,9 @@ services:
             timeout: 30s
             retries: 5
             start_period: 30s
+        networks:
+            - monolith
+
+networks:
+  monolith:
+    name: "monolith-network"
