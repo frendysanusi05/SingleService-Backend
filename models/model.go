@@ -18,7 +18,7 @@ type Barang struct {
 	ID		 		string		`gorm:"size:255;not null;unique;primary_key" json:"id"`
 	Nama			string		`gorm:"size:255;not null" json:"nama" binding:"required"`
 	Harga			int			`gorm:"not null" json:"harga" binding:"required"`
-	Stok			int			`gorm:"not null" json:"stok" binding:"required"`
+	Stok			int			`gorm:"not null" json:"stok"`
 	Kode			string		`gorm:"size:255;not null;unique" json:"kode" binding:"required"`
 	PerusahaanID	string		`gorm:"not null" json:"perusahaan_id" binding:"required"`
 	CreatedAt		time.Time
@@ -40,12 +40,3 @@ type Perusahaan struct {
 type Model struct {
 	Model interface{}
 }
-
-/********* GETTER ***********/
-// func GetModel() []Model {
-// 	return []Model {
-// 		{Model: User{}},
-// 		{Model: Barang{}},
-// 		{Model: Perusahaan{}},
-// 	}
-// }

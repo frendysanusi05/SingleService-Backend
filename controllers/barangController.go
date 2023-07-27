@@ -3,6 +3,7 @@ package controllers
 import (
 	"net/http"
 	"strconv"
+	"errors"
 
 	"github.com/gin-gonic/gin"
 
@@ -78,7 +79,11 @@ func CreateBarang(c *gin.Context) {
 		return
 	}
 
-	validateBarang(c, barang)
+	err := validateBarang(c, barang)
+	if err != nil {
+		utils.MessageBadRequest(c, err.Error())
+		return
+	}
 
 	if barang.ID == "" {
 		var lastBarang models.Barang
@@ -126,7 +131,11 @@ func UpdateBarang(c *gin.Context) {
 		return
 	}
 
-	validateBarang(c, barang)
+	err := validateBarang(c, barang)
+	if err != nil {
+		utils.MessageBadRequest(c, err.Error());
+		return
+	}
 
 	DB.Save(&barang)
 	c.IndentedJSON(http.StatusOK, gin.H{
@@ -175,21 +184,19 @@ func DeleteBarang(c *gin.Context) {
 }
 
 /******** ADDITIONAL FUNCTION *********/
-func validateBarang(c *gin.Context, barang models.Barang) {
+func validateBarang(c *gin.Context, barang models.Barang) error {
 	if !validateHarga(barang) {
-		utils.MessageBadRequest(c, "Harga must greater than 0")
-		return
+		return errors.New("Harga must be greater than 0")
 	}
 
 	if !validateStok(barang) {
-		utils.MessageBadRequest(c, "Stok cannot be negative")
-		return
+		return errors.New("Stok cannot be negative")
 	}
 
 	if !validateKodeBarang(barang) {
-		utils.MessageBadRequest(c, "Kode barang must have a unique value")
-		return
+		return errors.New("Kode must be unique")
 	}
+	return nil
 }
 
 func validateHarga(b models.Barang) bool {
@@ -208,12 +215,15 @@ func validateStok(b models.Barang) bool {
 
 func validateKodeBarang(b models.Barang) bool {
 	DB, _ := databases.ConnectDatabase()
-	var barang models.Barang
-	if err := DB.Where("kode = ?", b.Kode).First(&barang).Error; err != nil {
+	var barangs []models.Barang
+	if err := DB.Where("kode = ?", b.Kode).Find(&barangs).Error; err != nil {
 		return false
 	}
-	if barang.Kode == b.Kode && barang.ID == b.ID {
-		return false
+	
+	for _, barang := range barangs {
+		if barang.Kode == b.Kode && barang.ID != b.ID {
+			return false
+		}
 	}
 	return true
 }
