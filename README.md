@@ -1,7 +1,5 @@
 # Single Service - Back-End
 
-<br>
-
 ## Description
 Service ini menyediakan API yang digunakan sebagai back-end untuk aplikasi [Monolith](https://github.com/frendysanusi05/Monolith-Fullstack)
 
@@ -24,6 +22,7 @@ Service ini menyediakan API yang digunakan sebagai back-end untuk aplikasi [Mono
 * Gin v1.9.1                => framework Golang
 * Gorm v1.9.16              => ORM (Object Relational Mapper)
 * Docker-compose v2.19.1    => container
+* Postman                   => API testing tools
 
 ### Database
 * MySQL v8.0.34
@@ -102,6 +101,35 @@ docker-compose up
 <br>
 
 ## Bonuses
+### B01 - OWASP
+Sedikit teori mengenai OWASP dapat ditemukan di website [Try Hack Me](https://tryhackme.com/room/owasptop10)
+
+* Cryptographic Failure
+
+Serangan ini dilakukan apabila penyusup mampu memperoleh data sensitif dari hasil MITM (Man-In-The-Middle Attack). Misalkan penyusup memperoleh data user dan password, namun password masih dalam bentuk enkripsi.
+
+![Testing Result](res/cry-failure.jpg)
+
+Terlihat bahwa penyusup tidak berhasil melakukan login. Hal ini karena backend melakukan enkripsi password menggunakan bcrypt yang belum ditemukan metode dekripsinya.
+
+
+* Injection
+
+Metode injection yang digunakan adalah SQL injection, salah satu metode yang paling umum digunakan. Thanks to GORM, service tidak dapat diinjeksi.
+
+![Testing Result](res/sql-inj.jpg)
+
+
+* Identification and Authentication Failure
+
+Serangan ini dilakukan apabila penyusup memperoleh akun yang masih dalam keadaan login. Serangan dilakukan menggunakan cookie.
+
+![Testing Result](res/cookie.jpg)
+![Testing Result](res/token_is_exp.jpg)
+
+Terlihat bahwa walaupun masih terdapat cookie, penyusup tetap tidak dapat mengambil data admin karena cookie memiliki session. Ketika session habis, cookie tidak dapat digunakan kembali. Sesi percobaan dilakukan dengan mengeset session cookie = 0 detik
+
+
 ### B07 - API Documentation
 I created API documentation using swagger. See the docs [here](https://app.swaggerhub.com/apis-docs/FRENDYVIVO5/single-service/1.0.0).
 
