@@ -87,7 +87,7 @@ func CreateBarang(c *gin.Context) {
 
 	if barang.ID == "" {
 		var lastBarang models.Barang
-		res := DB.Order("id DESC").Select("id").First(&lastBarang)
+		res := DB.Order("CONVERT(id, SIGNED) DESC").Select("id").First(&lastBarang)
 		if res.Error == nil {
 			lastIDInt, _ := strconv.Atoi(lastBarang.ID)
 			lastIDInt = lastIDInt + 1
